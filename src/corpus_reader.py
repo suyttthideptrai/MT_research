@@ -1,6 +1,7 @@
 import os
 import xml.etree.ElementTree as ET
 
+#@author Hồng Đức
 def read_corpus(file_path, lang_id):
     sentences = []
     if file_path.endswith(".xml"):

@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from corpus_reader import read_corpus
 from setence_selector import select_sentences
 
+#@author Hồng Đức
 def main(n, lang_id):
     corpus_files = [
         "data/wikimedia.en-vi.en",
