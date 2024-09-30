@@ -1,0 +1,17 @@
+#Installation
+Python 3.6+ if using a Python wrapper of VnCoreNLP. To install this wrapper, users have to run the following command:
+
+$ pip3 install py_vncorenlp
+A special thanks goes to Linh The Nguyen for creating this wrapper!
+
+# basepath: src/pos/vn
+#Folder Structure
+/helpers___check_models.py: check exist before downloading
+        ___handle_postag: receive output_corpus and produce final_output
+/postagging_vn_script.py: handle the main logic
+/output ___output_corpus.txt: file after reading corpus 
+        ___pre_output.txt: input for postagging VN
+        ___final_output.txt: output for postaggin VN
+/models ___dont care
+VnCoreNLP-1.2.jar
+
