@@ -1,0 +1,5 @@
+PyYAML==5.3.1
+OpenNMT-tf
+spacy
+numpy<2
+pyvi
