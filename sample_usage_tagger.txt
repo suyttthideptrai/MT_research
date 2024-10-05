@@ -1,0 +1,9 @@
+RUN IN wsl
+
+python3 tagger.py <source_file> <lang_id> <result_file_name> <batch_size> <cpu_cores_num>
+
+command:
+python3 ./pos_tagging/tagger.py ./data/test_data.zh zh ./test_data/test_result/zh_result_tagged.zh 5
+python3 ./pos_tagging/tagger.py ./data/test_data.en en ./test_data/test_result/en_result_tagged.en 5
+
+
