@@ -23,5 +23,5 @@ SPACY_TAGGING_MODELS = MappingProxyType({
 })
 
 THIRD_PARTY_MODEL_PATHS = MappingProxyType({
-    "vi": "https://gitlab.com/trungtv/vi_spacy/-/raw/master/packages/vi_core_news_lg-3.6.0/dist/vi_core_news_lg-3.6.0.tar.gz"
+    "vi": "https://gitlab.com/trungtv/vi_spacy/-/raw/master/vi_core_news_lg/dist/vi_core_news_lg-0.0.1.tar.gz"
 })
