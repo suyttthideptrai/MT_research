@@ -12,26 +12,34 @@ def load_model(language_id):
     global nlp
     spacy.blank(language_id)
     cache_dir = const.MODEL_CACHE_DIR
-    model_path = str(const.SPACY_TAGGING_MODELS[language_id])
+    model_name = str(const.SPACY_TAGGING_MODELS[language_id])
     # Create cache directory if it doesn't exist
     os.makedirs(cache_dir, exist_ok=True)
-    print("Tagging model: " + model_path)
+    print("Tagging model: " + model_name)
     print("Loading model ...")
     try:
-        nlp = spacy.load(os.path.join(cache_dir, model_path))
+        nlp = spacy.load(os.path.join(cache_dir, model_name))
     except OSError:
-        print("Model not initialized. Downloading model: " + model_path + "...")
-        spacy.cli.download(model_path)
-        nlp = spacy.load(model_path)
-        nlp.to_disk(os.path.join(cache_dir, model_path))
+        print("Model not initialized. Downloading model: " + model_name + "...")
+        if language_id == "vi":
+            model_path = str(const.THIRD_PARTY_MODEL_PATHS[language_id])
+            spacy.cli.download(model_path)
+            nlp = spacy.load(model_name)
+            nlp.to_disk(os.path.join(cache_dir, model_name))
+        else:
+            spacy.cli.download(model_name)
+            nlp = spacy.load(model_name)
+            nlp.to_disk(os.path.join(cache_dir, model_name))
 
 def pos_tag_sentences(sentences, _batch_size):
     pos_sentences = []
     tag_sentences = []
     sentences_len = len(sentences)
     log_num = const.LOG_PER_NUMBER_OF_LINE_TAGGING
+
     # Batch processing with nlp.pipe
-    for i, doc in enumerate(nlp.pipe(sentences, batch_size=_batch_size)):
+    # for i, doc in enumerate(nlp.pipe(sentences, batch_size=_batch_size)):
+    for i, doc in enumerate(nlp.pipe(sentences)):
         # Print progress every 100 sentences to reduce logging overhead
         if  log_num >= sentences_len - i:
             sys.stdout.write(f"\rNumber Of Sentences Processed: {i + 1}/{sentences_len}")

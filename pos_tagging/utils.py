@@ -23,8 +23,9 @@ model_path = str(const.SPACY_MODEL_NAME_EN)
 def write_pos_tagged_file(pos_sentences, tag_sentences, output_file_path):
     # Get the directory from the file path
     directory = os.path.dirname(output_file_path)
+
     # Check if the directory exists, and create it if it doesn't
-    if not os.path.exists(directory):
+    if not os.path.exists(directory) and directory not in ["", "."]:
         os.makedirs(directory)
 
     file_name = output_file_path + const.POS_OUTPUT_POSTFIX

@@ -17,9 +17,11 @@ TAG_OUTPUT_POSTFIX = ".tag"
 ALLOWED_LANGUAGE_IDS = ["vi", "zh", "en"]
 
 SPACY_TAGGING_MODELS = MappingProxyType({
-    "vi": "?",
+    "vi": "vi_spacy_model",
     "zh": "zh_core_web_md",
     "en": "en_core_web_md",
 })
 
-
+THIRD_PARTY_MODEL_PATHS = MappingProxyType({
+    "vi": "https://gitlab.com/trungtv/vi_spacy/-/raw/master/packages/vi_core_news_lg-3.6.0/dist/vi_core_news_lg-3.6.0.tar.gz"
+})

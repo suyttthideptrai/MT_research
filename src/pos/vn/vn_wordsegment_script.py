@@ -5,13 +5,14 @@ import os
 
 # for word segmentation 
 # download wordsegment component and jar
-# passing corpus into wordsegemnt mcomponent => create wordsegment file  "Tiến_Thành ơi , em yêu anh ! Xin_lỗi , anh chỉ coi em là chị !"
+# passing corpus into wordsegemnt mcomponent => create wordsegment file
+# "Tiến_Thành ơi , em yêu anh ! Xin_lỗi , anh chỉ coi em là chị !"
 # return path to wordsegment file 
 def vn_nlp():
     abspath = os.path.abspath("./src/pos/vn/")
     print(abspath)
     # path to VNCoreNLP and model
-    file_path = "./src/pos/vn/VNCoreNLP-1.2.jar"
+    file_path = "./src/pos/vn/VnCoreNLP-1.2.jar"
     dir_path = "./src/pos/vn/models"
 
 
