@@ -8,19 +8,11 @@ import psutil
 import spacy
 from spacy.lang.en.examples import sentences
 
-# MAX_MEMORY_USAGE_RATIO = 0.5
-# INITIAL_BATCH_SIZE = 200
-# DEFAULT_BATCH_SIZE = 1000
-# CACHE_ENV_VAR = "SPACY_BATCH_SIZE"
-#
-# POS_POSTFIX = ".pos"
-# TAG_POSTFIX = ".tag"
-
 cache_dir = const.MODEL_CACHE_DIR
 model_path = str(const.SPACY_MODEL_NAME_EN)
 
 
-def write_pos_tagged_file(pos_sentences, tag_sentences, output_file_path):
+def write_pos_tagged_file(tag_sentences, output_file_path):
     # Get the directory from the file path
     directory = os.path.dirname(output_file_path)
 
@@ -28,13 +20,13 @@ def write_pos_tagged_file(pos_sentences, tag_sentences, output_file_path):
     if not os.path.exists(directory) and directory not in ["", "."]:
         os.makedirs(directory)
 
-    file_name = output_file_path + const.POS_OUTPUT_POSTFIX
-    print("\nWriting pos data to file: {}".format(file_name))
-    with open(file_name, 'w', encoding='utf-8') as file:
-        for sentence in pos_sentences:
-            file.write(sentence + '\n')
+    # file_name = output_file_path + const.POS_OUTPUT_POSTFIX
+    # print("\nWriting pos data to file: {}".format(file_name))
+    # with open(file_name, 'w', encoding='utf-8') as file:
+    #     for sentence in pos_sentences:
+    #         file.write(sentence + '\n')
     file_name = output_file_path + const.TAG_OUTPUT_POSTFIX
-    print("Writing tag data to file: {}".format(file_name))
+    print("\nWriting tag data to file: {}".format(file_name))
     with open(file_name, 'w', encoding='utf-8') as file:
         for sentence in tag_sentences:
             file.write(sentence + '\n')

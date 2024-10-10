@@ -7,6 +7,28 @@ import constants as const
 from utils import read_file, write_pos_tagged_file, read_cached_batch_size
 
 nlp = spacy.blank("en")
+vi_flag = False
+vi_tag_mapping = {
+    'A': 'ADJ',            # Adjective
+    'C': 'CCONJ',          # Coordinating conjunction
+    'E': 'ADP',            # Preposition
+    'I': 'INTJ',           # Interjection
+    'L': 'DET',            # Determiner
+    'M': 'NUM',            # Numeral
+    'N': 'NOUN',           # Common noun
+    'Nc': 'NOUN',          # Noun classifier
+    'Ny': 'NOUN',          # Noun abbreviation
+    'Np': 'PROPN',         # Proper noun
+    'Nu': 'NUM',           # Unit noun
+    'P': 'PRON',           # Pronoun
+    'R': 'ADV',            # Adverb
+    'S': 'SCONJ',          # Subordinating conjunction
+    'T': 'AUX',            # Auxiliary, modal words
+    'V': 'VERB',           # Verb
+    'X': 'X',              # Unknown
+    'F': 'PUNCT',          # Filtered out (punctuation)
+}
+
 
 def load_model(language_id):
     global nlp
@@ -22,8 +44,8 @@ def load_model(language_id):
     except OSError:
         print("Model not initialized. Downloading model: " + model_name + "...")
         if language_id == "vi":
-            model_path = str(const.THIRD_PARTY_MODEL_PATHS[language_id])
-            spacy.cli.download(model_path)
+            # model_path = str(const.THIRD_PARTY_MODEL_PATHS[language_id])
+            # spacy.cli.download(model_path)
             nlp = spacy.load(model_name)
             nlp.to_disk(os.path.join(cache_dir, model_name))
         else:
@@ -32,7 +54,8 @@ def load_model(language_id):
             nlp.to_disk(os.path.join(cache_dir, model_name))
 
 def pos_tag_sentences(sentences, _batch_size):
-    pos_sentences = []
+    global vi_flag, vi_tag_mapping
+    # pos_sentences = []
     tag_sentences = []
     sentences_len = len(sentences)
     log_num = const.LOG_PER_NUMBER_OF_LINE_TAGGING
@@ -47,20 +70,25 @@ def pos_tag_sentences(sentences, _batch_size):
         if i % log_num == 0:
             sys.stdout.write(f"\rNumber Of Sentences Processed: {i}/{sentences_len}")
             sys.stdout.flush()
-
-        pos_processed_sentence = " ".join([token.pos_ for token in doc])
-        tag_processed_sentence = " ".join([token.tag_ for token in doc])
-
-        pos_sentences.append(pos_processed_sentence)
+        # pos_processed_sentence = " ".join([token.pos_ for token in doc])
+        if vi_flag:
+            tag_processed_sentence = " ".join([map_tag_to_new_format(token.tag_) for token in doc])
+        else:
+            tag_processed_sentence = " ".join([token.tag_ for token in doc])
+        # pos_sentences.append(pos_processed_sentence)
         tag_sentences.append(tag_processed_sentence)
 
-    return [pos_sentences, tag_sentences]
+    return tag_sentences
 
 
 #process tagging
 def process(source_file_path, result_file_name, language_id, batch_size_, core_num):
-
+    global nlp, vi_flag
+    nlp = spacy.blank(language_id)
+    if language_id == "vi":
+        vi_flag = True
     #disable unnecessary pipes
+    print("Available pipes: ", nlp.pipe_names)
     other_pipes = [pipe for pipe in nlp.pipe_names if pipe not in const.ALLOWED_PIPE_NAMES_LIKE]
     print("Disabling pipes: ", other_pipes)
     nlp.disable_pipes(*other_pipes)
@@ -69,7 +97,7 @@ def process(source_file_path, result_file_name, language_id, batch_size_, core_n
     # device_compatible_batch_size = read_cached_batch_size()
     load_model(language_id)
     processed_sentences = pos_tag_sentences(sentences, batch_size_)
-    write_pos_tagged_file(processed_sentences[0], processed_sentences[1] , result_file_name)
+    write_pos_tagged_file(processed_sentences, result_file_name)
 
 # def process_batch(sentences, _batch_size):
 #     pos_sentences, tag_sentences = pos_tag_sentences(sentences, _batch_size)
@@ -85,3 +113,7 @@ def process(source_file_path, result_file_name, language_id, batch_size_, core_n
 #             if not lines:
 #                 break
 #             yield lines
+
+
+def map_tag_to_new_format(tag):
+    return vi_tag_mapping.get(tag, 'X')  # Defaults to 'X' if tag is not found

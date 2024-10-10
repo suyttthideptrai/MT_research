@@ -1,16 +1,12 @@
 import spacy
 import os
-from spacy.lang.zh.examples import sentences
 
-#install vocab model from spacy.io
-cache_dir=os.getenv("cache_dir", "../../models")
-model_path="zh_core_web_md"
-try:
-    nlp = spacy.load(os.path.join(cache_dir,model_path))
-except OSError:
-    spacy.cli.download(model_path)
-    nlp = spacy.load(model_path)
-    # nlp.to_disk(os.path.join(cache_dir,model_path))
+from spacy.lang.vi.examples import sentences
+import constants as const
+
+
+nlp = spacy.load(const.SPACY_TAGGING_MODELS["vi"])
+
 
 # nlp = spacy.load("zh_core_web_md-3.8.0-py3-none-any.whl")
 doc = nlp(sentences[0])
@@ -23,3 +19,18 @@ for token in doc:
     print(f"{token.text:<15} {token.lemma_:<15} {token.pos_:<10} {token.tag_:<10} {token.dep_:<15} "
           f"{token.shape_:<10} {token.is_alpha:<10} {token.is_stop}")
 
+
+
+# import torch
+# from transformers import AutoModel, AutoTokenizer
+#
+# phobert = AutoModel.from_pretrained("vinai/phobert-base-v2")
+# tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base-v2")
+#
+# # INPUT TEXT MUST BE ALREADY WORD-SEGMENTED!
+# sentence = 'Chúng_tôi là những nghiên_cứu_viên .'
+#
+# input_ids = torch.tensor([tokenizer.encode(sentence)])
+#
+# with torch.no_grad():
+#     features = phobert(input_ids)

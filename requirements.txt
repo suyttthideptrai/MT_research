@@ -1,8 +1,8 @@
 PyYAML==5.3.1
 OpenNMT-tf
-spacy==3.7.6
 numpy<2
 pyvi
 spacy-pkuseg
 psutil~=6.0.0
 nltk~=3.9.1
+https://gitlab.com/trungtv/vi_spacy/-/raw/master/packages/vi_core_news_lg-3.6.0/dist/vi_core_news_lg-3.6.0.tar.gz
