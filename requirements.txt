@@ -6,3 +6,7 @@ spacy-pkuseg
 psutil~=6.0.0
 nltk~=3.9.1
 https://gitlab.com/trungtv/vi_spacy/-/raw/master/packages/vi_core_news_lg-3.6.0/dist/vi_core_news_lg-3.6.0.tar.gz
+torch~=2.2.2
+transformers~=4.36.2
+spacy
+pandas~=2.2.2

@@ -1,10 +1,9 @@
 import spacy
 import os
 import sys
-import concurrent.futures
-import constants as const
 
-from utils import read_file, write_pos_tagged_file, read_cached_batch_size
+import constants as const
+from utils import read_file, write_pos_tagged_file
 
 nlp = spacy.blank("en")
 vi_flag = False
@@ -74,7 +73,7 @@ def pos_tag_sentences(sentences, _batch_size):
         if vi_flag:
             tag_processed_sentence = " ".join([map_tag_to_new_format(token.tag_) for token in doc])
         else:
-            tag_processed_sentence = " ".join([token.tag_ for token in doc])
+            tag_processed_sentence = " ".join([token.pos_ for token in doc])
         # pos_sentences.append(pos_processed_sentence)
         tag_sentences.append(tag_processed_sentence)
 
