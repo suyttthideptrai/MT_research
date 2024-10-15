@@ -8,6 +8,7 @@ import math
 import os
 import time
 import zipfile
+import argparse
 
 import pandas as pd
 import numpy as np
@@ -21,6 +22,8 @@ DEFAULT_DEV_ROW = 2000
 DEFAULT_TEST_ROW = 2000
 
 main_df = pd.DataFrame(columns=[SRC_COLUMN, TGT_COLUMN, CORPUS_COLUMN])
+validation_df = pd.DataFrame(columns=[SRC_COLUMN, TGT_COLUMN])
+test_df = pd.DataFrame(columns=[SRC_COLUMN, TGT_COLUMN])
 corpus_dict = {}
 
 
@@ -122,34 +125,102 @@ def filter_data(df, corpus_no):
     return df
 
 
-def write_files(corpus_id, output_file_path, src_lang_id, tgt_lang_id):
+def split_data_frame(corpus_id, dev_num_p_c, test_num_p_c):
     """ Write """
-    global main_df, corpus_dict
+    #Tính tỉ lệ dev row dựa vào số corpus và số dev_num
+    #Với mỗi corpus, lọc frame với id corpus tương ứng
+    #Sample với số được tính ra với mỗi corpus ID, append vào một dataframe mới
+    #Sau khi loop qua tất cả corpus, shuffle dataframe dev và test, ghi file ra
+    global main_df, validation_df, test_df, corpus_dict
 
     # Filter out data by corpus id
-    df_filtered_by_c_id = main_df[main_df[CORPUS_COLUMN] == corpus_id]
-    corpus_name = corpus_dict.get(corpus_id)
-    path_separator = os.path.sep
-    # Get file names
-    source_file = (output_file_path + path_separator
-                   + corpus_name + "_" + corpus_id + "_processed." + src_lang_id)
-    target_file = (output_file_path + path_separator
-                   + corpus_name + "_" + corpus_id + "_processed." + tgt_lang_id)
-    # Write the dataframe to two Source and Target files
-    df_filtered_by_c_id[[SRC_COLUMN]].to_csv(source_file, header=False, index=False,
-                                             quoting=csv.QUOTE_NONE, sep="\n")
-    print("Source File Saved:", source_file)
-    df_filtered_by_c_id[[TGT_COLUMN]].to_csv(target_file, header=False, index=False,
-                                             quoting=csv.QUOTE_NONE, sep="\n")
-    print("Target File Saved:", target_file)
+    df_filtered_by_c_id = (main_df[main_df[CORPUS_COLUMN] == corpus_id]
+                           .sample(n=dev_num_p_c))
+    # Sample dev set
+    validation_df = pd.concat([validation_df, df_filtered_by_c_id], axis=0)
+    main_df.drop(df_filtered_by_c_id.index, inplace=True)
+    print(f"0Validation Frame rows after: {validation_df.shape[0]}, dev_df {len(df_filtered_by_c_id.index)}")
+    print(f"0Total Corpus {corpus_id} reduced to: {df_filtered_by_c_id.shape[0]}")
+    print(f"0Total Train rows reduced to: {main_df.shape[0]} after extract .dev")
+
+    if test_num_p_c == 0:
+        return
+
+    df_c_id_sample_t = (main_df[main_df[CORPUS_COLUMN] == corpus_id]
+                           .sample(n=test_num_p_c))
+    # print(f"test r sampled: {len(df.index)}")
+    test_df = pd.concat([test_df, df_c_id_sample_t], axis=0)
+    main_df.drop(df_c_id_sample_t.index, inplace=True)
+    print(f"1Test Frame rows after: {test_df.shape[0]}, test_df {len(df_c_id_sample_t.index)}")
+    print(f"1Total Corpus {corpus_id} reduced to: {df_filtered_by_c_id.shape[0]}")
+    print(f"1Total Train rows reduced to: {main_df.shape[0]} after extract .test")
+
+    print(f"-------------------------------------------------")
+
 
 
 def handle_write_result_files(src_lang_id, tgt_lang_id, output_file_path, dev_num, test_num):
+    global main_df, validation_df, test_df, corpus_dict
     """ Write processed result files """
-    print(f"Processing validation and test data (rows): {DEFAULT_DEV_ROW}, {DEFAULT_TEST_ROW}")
+    #Tính tỉ lệ dev row dựa vào số corpus và số dev_num
+    #Với mỗi corpus, lọc frame với id corpus tương ứng
+    #Sample với số được tính ra với mỗi corpus ID, append vào một dataframe mới
+    #Sau khi loop qua tất cả corpus, shuffle dataframe dev và test, ghi file ra
+    print(f"Processing validation and test data (rows): {dev_num}, {test_num}")
     print(f"{src_lang_id} + {tgt_lang_id} + {output_file_path}")
+    is_process_test = test_num > 0
+    dev_row_foreach = math.ceil(dev_num / len(corpus_dict))
+    test_row_foreach = math.ceil(test_num / len(corpus_dict)) if is_process_test else 0
+    print(f"Dev rows for each corpus: {dev_row_foreach}")
+    print(f"Test rows for each corpus: {test_row_foreach}")
+
     for key in corpus_dict:
-        write_files(key, output_file_path, src_lang_id, tgt_lang_id)
+        split_data_frame(key, dev_row_foreach, test_row_foreach)
+
+    path_separator = os.path.sep
+
+    main_df = main_df.sample(frac=1).reset_index(drop=True)
+    validation_df = validation_df.sample(frac=1).reset_index(drop=True)
+
+    # Get file names
+    source_file_train = (output_file_path + path_separator + "processed." + src_lang_id + ".train")
+    target_file_train = (output_file_path + path_separator + "processed." + tgt_lang_id + ".train")
+    # Write the dataframe to two Source and Target files
+    main_df[[SRC_COLUMN]].to_csv(source_file_train, header=False, index=False,
+                                             quoting=csv.QUOTE_NONE, sep="\n")
+    print("Train File Saved:", source_file_train)
+    main_df[[TGT_COLUMN]].to_csv(target_file_train, header=False, index=False,
+                                             quoting=csv.QUOTE_NONE, sep="\n")
+    print("Train File Saved:", target_file_train)
+
+    # Write validation and test files
+    source_file_dev = (output_file_path + path_separator + "processed." + src_lang_id + ".dev")
+    target_file_dev = (output_file_path + path_separator + "processed." + tgt_lang_id + ".dev")
+
+    validation_df[[SRC_COLUMN]].to_csv(source_file_dev, header=False, index=False,
+                                 quoting=csv.QUOTE_NONE, sep="\n")
+    print("Dev File Saved:", source_file_dev)
+    validation_df[[TGT_COLUMN]].to_csv(target_file_dev, header=False, index=False,
+                                 quoting=csv.QUOTE_NONE, sep="\n")
+    print("Dev File Saved:", target_file_dev)
+
+    if test_num == 0:
+        return
+
+    test_df = test_df.sample(frac=1).reset_index(drop=True)
+
+    source_file_test = (output_file_path + path_separator + "processed." + src_lang_id + ".test")
+    target_file_test = (output_file_path + path_separator + "processed." + tgt_lang_id + ".test")
+
+    test_df[[SRC_COLUMN]].to_csv(source_file_test, header=False, index=False,
+                                    quoting=csv.QUOTE_NONE, sep="\n")
+    print("Test File Saved:", source_file_test)
+    test_df[[TGT_COLUMN]].to_csv(target_file_test, header=False, index=False,
+                                    quoting=csv.QUOTE_NONE, sep="\n")
+    print("Test File Saved:", target_file_test)
+
+
+
 
 
 def process(src_id, tgt_id, dev_num, test_num, zip_paths, output_path):
@@ -172,7 +243,7 @@ def process(src_id, tgt_id, dev_num, test_num, zip_paths, output_path):
     print(f"Total corpus: {corpus_no}")
     print(corpus_dict)
     print(f"Rows after processed {corpus_no} corpus: {main_df.shape[0]}")
-    handle_write_result_files(src_id, tgt_id, output_path)
+    handle_write_result_files(src_id, tgt_id, output_path, dev_num, test_num)
 
 
 def filter_and_merge_data(source_file, target_file, corpus_no):
@@ -217,15 +288,34 @@ def validate_and_create_dir(directory):
 # cp_name = get_corpus_name_by_path("../data/QED/QED.en-vi.en")
 # print(cp_name)
 
+def get_arg():
+    parser = argparse.ArgumentParser(description='Process Arguments')
+    parser.add_argument('--src', type=str, help='Source lang ID')
+    parser.add_argument('--tgt', type=str, help='Target lang ID')
+    parser.add_argument('--dev', type=int, default=DEFAULT_DEV_ROW, help='Number of output .dev rows')
+    parser.add_argument('--test', type=int, default=0, help='Number of output .test rows')
+    parser.add_argument('--result_path', type=str, default="./", help='Result Path')
+    parser.add_argument('zip_file_paths', nargs='*', help='Additional zip file paths (array input)')
+    return parser.parse_args()
+
+
+
 
 if __name__ == '__main__':
-    src_lang_id = sys.argv[1]
-    tgt_lang_id = sys.argv[2]
-    dev_row = sys.argv[3]
-    test_row = sys.argv[4]
-    result_path = sys.argv[5]
-    zip_file_paths = sys.argv[6:]
-    print(f"params: {src_lang_id}, {tgt_lang_id}, {dev_row}, {test_row}, {zip_file_paths}")
+    args = get_arg()
+    src_lang_id = args.src
+    tgt_lang_id = args.tgt
+    dev_row = args.dev
+    test_row = args.test
+    result_path = args.result_path
+    zip_file_paths = args.zip_file_paths
+    print(f"params  :\n"
+          f"src     : {src_lang_id}\n"
+          f"tgt     : {tgt_lang_id}\n"
+          f"dev     : {dev_row}\n"
+          f"test    : {test_row}\n"
+          f"save_to : {result_path}\n"
+          f"files   : {zip_file_paths}\n")
     start_time = time.time()
     process(src_lang_id, tgt_lang_id, dev_row, test_row, zip_file_paths, result_path)
     end_time = time.time()
