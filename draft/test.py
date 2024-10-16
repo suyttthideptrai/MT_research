@@ -1,9 +1,4 @@
-import spacy
 import pandas as pd
-
-from spacy.lang.vi.examples import sentences
-from pos_tagging import constants as const
-
 
 # def spacy_test():
 #     nlp = spacy.load(const.SPACY_TAGGING_MODELS["vi"])

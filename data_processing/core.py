@@ -7,27 +7,6 @@ from utils import read_file, write_pos_tagged_file
 
 nlp = spacy.blank("en")
 vi_flag = False
-vi_tag_mapping = {
-    'A': 'ADJ',            # Adjective
-    'C': 'CCONJ',          # Coordinating conjunction
-    'E': 'ADP',            # Preposition
-    'I': 'INTJ',           # Interjection
-    'L': 'DET',            # Determiner
-    'M': 'NUM',            # Numeral
-    'N': 'NOUN',           # Common noun
-    'Nc': 'NOUN',          # Noun classifier
-    'Ny': 'NOUN',          # Noun abbreviation
-    'Np': 'PROPN',         # Proper noun
-    'Nu': 'NUM',           # Unit noun
-    'P': 'PRON',           # Pronoun
-    'R': 'ADV',            # Adverb
-    'S': 'SCONJ',          # Subordinating conjunction
-    'T': 'AUX',            # Auxiliary, modal words
-    'V': 'VERB',           # Verb
-    'X': 'X',              # Unknown
-    'F': 'PUNCT',          # Filtered out (punctuation)
-}
-
 
 def load_model(language_id):
     global nlp
@@ -53,7 +32,7 @@ def load_model(language_id):
             nlp.to_disk(os.path.join(cache_dir, model_name))
 
 def pos_tag_sentences(sentences, _batch_size):
-    global vi_flag, vi_tag_mapping
+    global vi_flag
     # pos_sentences = []
     tag_sentences = []
     sentences_len = len(sentences)
@@ -115,4 +94,4 @@ def process(source_file_path, result_file_name, language_id, batch_size_, core_n
 
 
 def map_tag_to_new_format(tag):
-    return vi_tag_mapping.get(tag, 'X')  # Defaults to 'X' if tag is not found
+    return const.VI_TAG_MAPPING.get(tag, 'X')  # Defaults to 'X' if tag is not found
