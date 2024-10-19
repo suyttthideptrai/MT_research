@@ -122,12 +122,15 @@ def filter_data(df, corpus_no):
 def split_and_drop_dev(filtered_df):
     """ Handle split dev, drop index then return df """
     global validation_df
-    filtered_df = filtered_df.reset_index(drop=True)
     dev_row_foreach = math.ceil(DEV_ROWS / len(ZIP_FILE_PATHS))
     val_sample_df = filtered_df.sample(n = dev_row_foreach)
-    filtered_df.drop(val_sample_df.index, inplace=True)
+    try:
+        filtered_df = filtered_df.drop(val_sample_df.index)
+    except:
+        pass
     validation_df = pd.concat([validation_df, val_sample_df], axis=0)
     print(f"Sampled {val_sample_df.shape[0]} rows for validation, val frame after: {validation_df.shape[0]}")
+    filtered_df = filtered_df.reset_index(drop=True)
 
     return filtered_df
 
@@ -135,12 +138,16 @@ def split_and_drop_dev(filtered_df):
 def split_and_drop_test(filtered_df):
     """ Handle split test, drop index then return df """
     global test_df, TEST_ROWS, ZIP_FILE_PATHS
-    filtered_df = filtered_df.reset_index(drop=True)
+    # filtered_df = filtered_df.reset_index(drop=True)
     test_row_foreach = math.ceil(TEST_ROWS / len(ZIP_FILE_PATHS))
     test_sample_df = filtered_df.sample(n = test_row_foreach)
-    filtered_df.drop(validation_df.index, inplace=True)
+    try:
+        filtered_df = filtered_df.drop(index=validation_df.index)
+    except:
+        pass
     test_df = pd.concat([test_df, test_sample_df], axis=0)
     print(f"Sampled {test_sample_df.shape[0]} rows for validation, val frame after: {test_df.shape[0]}")
+    filtered_df = filtered_df.reset_index(drop=True)
 
     return filtered_df
 
@@ -167,6 +174,9 @@ def handle_write_result_files():
                               quoting=csv.QUOTE_NONE, sep="\n")
     print("Train File Saved:", target_file_train)
 
+    if DEV_ROWS == 0:
+        return
+
     # Write validation and test files
     source_file_dev = (RESULT_PATH + path_separator + "processed." + SRC_LANG_ID + ".dev")
     target_file_dev = (RESULT_PATH + path_separator + "processed." + TGT_LANG_ID + ".dev")
@@ -184,7 +194,7 @@ def handle_write_result_files():
     test_df = test_df.sample(frac=1).reset_index(drop=True)
 
     source_file_test = (RESULT_PATH + path_separator + "processed." + SRC_LANG_ID + ".test")
-    target_file_test = (RESULT_PATH + path_separator + "processed." + SRC_LANG_ID + ".test")
+    target_file_test = (RESULT_PATH + path_separator + "processed." + TGT_LANG_ID + ".test")
 
     test_df[[COL_SRC]].to_csv(source_file_test, header=False, index=False,
                               quoting=csv.QUOTE_NONE, sep="\n")
@@ -235,9 +245,12 @@ def filter_split_merge_data(source_file, target_file, corpus_no):
     #Split data
     if DEV_ROWS > 0:
         df_corpus = split_and_drop_dev(df_corpus)
+    print(f"Sampled dev sentences: \n{validation_df.head(5)}\n{validation_df.tail(5)}")
 
     if TEST_ROWS > 0:
         df_corpus = split_and_drop_test(df_corpus)
+    print(f"Sampled test sentences: \n{test_df.head(5)}\n{test_df.tail(5)}")
+
 
     #Concat corpus label for file output handling
     print(f"Processed corpus dataframe shape (rows, columns): {df_corpus.shape}")
@@ -293,9 +306,12 @@ if __name__ == '__main__':
           f"dev     : {DEV_ROWS}                  \n"
           f"test    : {TEST_ROWS}                 \n"
           f"save_to : {RESULT_PATH}               \n"
-          f"files   : {ZIP_FILE_PATHS}            \n"
-          f"--------------------------------------\n"
-    )
+          f"files   :                              ")
+    i = 0
+    for path in ZIP_FILE_PATHS:
+        i += 1
+        print(f" {i}      : {path}")
+    print(f"--------------------------------------\n")
     start_time = time.time()
     process()
     end_time = time.time()
